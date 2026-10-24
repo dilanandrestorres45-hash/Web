@@ -18,26 +18,32 @@ jobs:
         with:
           node-version: 18
 
+      - name: Preparar carpeta web e instalar Capacitor
+        run: |
+          mkdir www
+          shopt -s extglob
+          cp -r !(www|.git|.github) www/ || true
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "MiApp" "com.miapp.app" --web-dir www
+          npx cap add android
+          npx cap sync android
+
       - name: Configurar Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Instalar Capacitor y Android
-        run: |
-          npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "MiAplicacion" "com.miempresa.miapp" --web-dir .
-          npx cap add android
-          npx cap sync android
+      - name: Dar permisos a Gradle
+        run: chmod +x android/gradlew
 
       - name: Compilar APK
         run: |
           cd android
           ./gradlew assembleDebug
 
-      - name: Guardar APK como Artefacto
+      - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
           name: mi-app-android
